@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>World Cup 2026 - Merlion Sweepstake</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="page-bg"></div>
+
+  <!-- 顶部 -->
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="logo">⚽</div>
+        <div class="brand-text">
+          <h1>World Cup 2026 <span class="dim">- Merlion Sweepstake</span></h1>
+          <p>Live updates for the crew</p>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="user-box">
+          <span class="user-label">你是</span>
+          <input id="nickname" class="nickname-input" placeholder="输入昵称…" autocomplete="off" />
+        </div>
+        <button id="adminBtn" class="admin-btn" title="一键结算所有未开赛比赛（演示猜比分玩法）">Admin</button>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <nav class="tabs">
+      <button class="tab active" data-tab="live">Live Updates</button>
+      <button class="tab" data-tab="rankings">Rankings</button>
+      <button class="tab" data-tab="trash">Trash Talk</button>
+    </nav>
+  </header>
+
+  <main class="container">
+    <!-- Live Updates -->
+    <section id="tab-live" class="tab-panel active"></section>
+
+    <!-- Rankings -->
+    <section id="tab-rankings" class="tab-panel"></section>
+
+    <!-- Trash Talk -->
+    <section id="tab-trash" class="tab-panel"></section>
+  </main>
+
+  <footer class="foot">
+    <span id="footStatus">Updated just now</span>
+  </footer>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
