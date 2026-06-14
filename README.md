@@ -2,6 +2,8 @@
 
 朋友聚会看球用的世界杯竞猜小站。深绿暗色主题，纯前端静态站，开箱即用、可一键部署到 GitHub Pages。
 
+🔗 **在线演示**：https://turbo998.github.io/world-cup-sweepstake/
+
 ## 功能
 - **Live Updates**：按日期分组（今天/昨天展开、未来折叠）的赛程与比分，含分组、状态点（FULL TIME / UPCOMING）、双方球员认领标签。
 - **赛前猜比分**（竞猜玩法）：在未开赛比赛卡上输入预测比分。结算规则：
@@ -35,4 +37,5 @@ python -m http.server 8000
 | `app.js` | Tab 切换、渲染、猜比分与结算、排行榜、留言逻辑 |
 
 ## 部署到 GitHub Pages
-仓库 Settings → Pages → Source 选择 `main` 分支根目录，保存后即可获得演示链接。
+仓库 Settings → Pages → Source 选择 `main` 分支根目录，保存后即可获得演示链接：
+https://turbo998.github.io/world-cup-sweepstake/
