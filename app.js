@@ -7,6 +7,7 @@ const LS = {
   pred: "wcs_pred",       // { user: { matchId: [h, a] } }
   results: "wcs_results", // { matchId: [h, a] }  —— 演示结算未开赛比赛
   trash: "wcs_trash",     // [ { user, text, t } ]  —— 用户新增留言
+  favs: "wcs_favs",       // { user: [team, ...] }  —— 用户认领/支持的球队
 };
 
 const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
@@ -116,6 +117,77 @@ function standings() {
 }
 
 /* ============================================================
+ *  球队认领 / 支持（Pick Teams）
+ * ============================================================ */
+// 反查：球队 -> sweepstake 抽签认领它的玩家
+function teamOwner(team) {
+  for (const [user, teams] of Object.entries(PLAYERS)) {
+    if (teams.includes(team)) return user;
+  }
+  return null;
+}
+
+function favsFor(user) {
+  const all = load(LS.favs, {});
+  return all[user] || [];
+}
+
+function toggleFav(team) {
+  const user = ensureUser();
+  const all = load(LS.favs, {});
+  const arr = new Set(all[user] || []);
+  if (arr.has(team)) arr.delete(team); else arr.add(team);
+  all[user] = [...arr];
+  save(LS.favs, all);
+  return arr.has(team);
+}
+
+function renderPicks() {
+  const el = document.getElementById("tab-picks");
+  const user = currentUser();
+  const favs = new Set(favsFor(user));
+
+  // 汇总：我支持的球队战绩
+  let tw = 0, tt = 0, tl = 0;
+  favs.forEach((tm) => { const r = teamRecord(tm); tw += r.w; tt += r.t; tl += r.l; });
+
+  const summary = `<div class="picks-summary">
+    <div class="ps-left">
+      <span class="ps-title">我支持的球队</span>
+      <span class="ps-count">⭐ ${favs.size}</span>
+    </div>
+    <div class="ps-record">
+      <span class="w">${tw}W</span><span class="t">${tt}T</span><span class="l">${tl}L</span>
+    </div>
+  </div>
+  <p class="picks-hint">点击下面任意球队卡片，标记你为它加油 —— 你支持的球队会在 Live Updates 里高亮 ⭐</p>`;
+
+  const cards = Object.keys(TEAMS).map((tm) => {
+    const owner = teamOwner(tm);
+    const r = teamRecord(tm);
+    const on = favs.has(tm);
+    return `<button class="pick-card ${on ? "on" : ""}" data-team="${tm}">
+      <span class="pc-star">${on ? "⭐" : "☆"}</span>
+      <span class="pc-flag">${TEAMS[tm]}</span>
+      <span class="pc-name">${tm}</span>
+      <span class="pc-owner">${owner ? owner + " 抽中" : "未认领"}</span>
+      <span class="pc-rec"><span class="w">${r.w}W</span><span class="t">${r.t}T</span><span class="l">${r.l}L</span></span>
+    </button>`;
+  }).join("");
+
+  el.innerHTML = summary + `<div class="picks-grid">${cards}</div>`;
+
+  el.querySelectorAll(".pick-card").forEach((c) =>
+    c.addEventListener("click", () => {
+      const on = toggleFav(c.dataset.team);
+      toast(on ? `已为 ${c.dataset.team} 加油 ⭐` : `已取消支持 ${c.dataset.team}`);
+      renderPicks();
+      renderLive();
+    })
+  );
+}
+
+/* ============================================================
  *  渲染：Live Updates
  * ============================================================ */
 function renderLive() {
@@ -159,6 +231,8 @@ function renderLive() {
 function matchCard(m, user, myPred) {
   const em = effectiveMatch(m);
   const hf = TEAMS[m.home] || "", af = TEAMS[m.away] || "";
+  const favs = new Set(favsFor(user));
+  const homeFav = favs.has(m.home), awayFav = favs.has(m.away);
   const statusHtml = em.isFT
     ? `<span class="status ft"><span class="dot"></span>${em.simulated ? "FULL TIME*" : "FULL TIME"}</span>`
     : `<span class="status up"><span class="dot"></span>UPCOMING</span>`;
@@ -196,13 +270,13 @@ function matchCard(m, user, myPred) {
       ${statusHtml}
     </div>
     <div class="match-row">
-      <div class="team home">
-        <div class="name"><span class="flag">${hf}</span>${m.home}</div>
+      <div class="team home${homeFav ? " fav" : ""}">
+        <div class="name">${homeFav ? '<span class="fav-star">⭐</span>' : ""}<span class="flag">${hf}</span>${m.home}</div>
         <span class="player-chip">${m.homePlayer}</span>
       </div>
       ${center}
-      <div class="team away">
-        <div class="name">${m.away}<span class="flag">${af}</span></div>
+      <div class="team away${awayFav ? " fav" : ""}">
+        <div class="name">${m.away}<span class="flag">${af}</span>${awayFav ? '<span class="fav-star">⭐</span>' : ""}</div>
         <span class="player-chip">${m.awayPlayer}</span>
       </div>
     </div>
@@ -405,6 +479,7 @@ function switchTab(name) {
 
 function renderAll() {
   renderLive();
+  renderPicks();
   renderRankings();
   renderTrash();
   document.getElementById("footStatus").textContent = "Updated " + nowStr();
